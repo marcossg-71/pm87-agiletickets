@@ -15,8 +15,10 @@ import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 
+import org.joda.time.Days;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalTime;
+import org.joda.time.Weeks;
 
 @Entity
 public class Espetaculo {
@@ -101,15 +103,39 @@ public class Espetaculo {
 	public List<Sessao> criaSessoes(LocalDate inicio, LocalDate fim, LocalTime horario, Periodicidade periodicidade) {
 		// ALUNO: Não apague esse metodo. Esse sim será usado no futuro! ;)
 		
+		if(inicio == null || fim == null || horario == null ||  periodicidade ==null){
+			throw new RuntimeException("Campos obrigatorios nulos");
+		}
+		
 		ArrayList<Sessao> sessoes = new ArrayList<Sessao>();
-		Sessao sessao = new Sessao();
+		if(inicio.isAfter(fim)){
+			throw new RuntimeException("A data de inicio deve ser antes da data de fim");
+		}
+		
+		if (periodicidade==Periodicidade.DIARIA){
+			int days = Days.daysBetween(inicio, fim).getDays() + 1;
+			for (int i = 0; i < days; i++) {
+				addSessao(inicio, horario, sessoes);
+			}
+		} else {
+			int weeks = Weeks.weeksBetween(inicio, fim).getWeeks();
+			for (int i = 0; i < weeks; i++) {
+				addSessao(inicio, horario, sessoes);
+			}
+		}
+		return sessoes;
+	}
+
+	private void addSessao(LocalDate inicio, LocalTime horario,
+			ArrayList<Sessao> sessoes) {
+		Sessao sessao;
+		sessao = new Sessao();
 		sessao.setEspetaculo(this);
 		sessao.setInicio(inicio.toDateTime(horario));
 		sessao.setTotalIngressos(100);
 		sessao.setDuracaoEmMinutos(60);
 		sessao.setPreco(BigDecimal.valueOf(99.90));
 		sessoes.add(sessao);
-		return sessoes;
 	}
 	
 	public boolean Vagas(int qtd, int min)
